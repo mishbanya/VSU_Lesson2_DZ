@@ -1,6 +1,7 @@
 package com.example.vsu_lesson2_dz
 
 import android.annotation.SuppressLint
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -16,6 +17,8 @@ import androidx.core.view.WindowInsetsCompat
 class MainActivity : AppCompatActivity(), OnClickListener{
 
     private var secretKey: String? = null
+    private var receiverMessage: String? = null
+    private val myReceiver = MyBroadcastReceiver()
     @SuppressLint("Range")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +44,10 @@ class MainActivity : AppCompatActivity(), OnClickListener{
                 val cursor = contentResolver.query(uri, null, null, null, null)
                 cursor?.use {
                     if (it.moveToFirst()) {
-                        val text = it.getString(it.getColumnIndex("text"))
+                        var text = ""
+                        if(it.getColumnIndex("text")!=-1){
+                            text = it.getString(it.getColumnIndex("text"))
+                        }
                         makeAToastMsg(text)
                         secretKey = text
                     } else {
@@ -50,24 +56,38 @@ class MainActivity : AppCompatActivity(), OnClickListener{
                 }
             }
             findViewById<Button>(R.id.broadcastreciever_button) -> {
-                makeAToastMsg("b2")
+                receiverMessage?.let { makeAToastMsg(it) }
             }
         }
     }
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("CONTENT_PROVIDER_KEY", secretKey)
+        outState.putString("BROADCAST_RECIEVER_MSG", receiverMessage)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        val contentProviderKey = savedInstanceState?.getString("CONTENT_PROVIDER_KEY")
-        if (contentProviderKey != null) {
-            Log.d("CONTENT_PROVIDER_KEY", "$contentProviderKey")
-            secretKey = contentProviderKey
-        }
+        secretKey = savedInstanceState?.getString("CONTENT_PROVIDER_KEY")
+        receiverMessage = savedInstanceState?.getString("BROADCAST_RECIEVER_MSG")
+        secretKey?.let { Log.d("CONTENT_PROVIDER_KEY", it) }
+        receiverMessage?.let { Log.d("BROADCAST_RECIEVER_MSG", it) }
     }
-    fun makeAToastMsg(s: String){
+    override fun onResume() {
+        super.onResume()
+        val filter = IntentFilter("ru.shalkoff.vsu_lesson2_2024.SURF_ACTION")
+        registerReceiver(myReceiver, filter)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(myReceiver)
+    }
+    fun handleMessage(message: String) {
+        receiverMessage = message
+        makeAToastMsg(message)
+    }
+    private fun makeAToastMsg(s: String){
         Toast.makeText(
             this,
             s,
