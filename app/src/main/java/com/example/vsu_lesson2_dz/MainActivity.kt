@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.view.View.OnClickListener
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -11,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
-class MainActivity : AppCompatActivity(){
+class MainActivity : AppCompatActivity(), OnClickListener{
 
     private var secretKey: String? = null
     @SuppressLint("Range")
@@ -27,25 +29,31 @@ class MainActivity : AppCompatActivity(){
 
         val contentProviderButton: Button = findViewById(R.id.contentprovider_button)
         val broadcastReceiverButton: Button = findViewById(R.id.broadcastreciever_button)
-        contentProviderButton.setOnClickListener{
-            val uri = Uri.parse("content://dev.surf.android.provider/text")
-
-            val cursor = contentResolver.query(uri, null, null, null, null)
-            cursor?.use {
-                if (it.moveToFirst()) {
-                    val text = it.getString(it.getColumnIndex("text"))
-                    makeAToastMsg(text)
-                    secretKey = text
-                } else {
-                    makeAToastMsg("nokey")
-                }
-            }
-        }
-        broadcastReceiverButton.setOnClickListener {
-            makeAToastMsg("b2")
-        }
+        contentProviderButton.setOnClickListener(this)
+        broadcastReceiverButton.setOnClickListener(this)
     }
 
+    @SuppressLint("Range")
+    override fun onClick(v: View?) {
+        when (v){
+            findViewById<Button>(R.id.contentprovider_button) -> {
+                val uri = Uri.parse("content://dev.surf.android.provider/text")
+                val cursor = contentResolver.query(uri, null, null, null, null)
+                cursor?.use {
+                    if (it.moveToFirst()) {
+                        val text = it.getString(it.getColumnIndex("text"))
+                        makeAToastMsg(text)
+                        secretKey = text
+                    } else {
+                        makeAToastMsg("nokey")
+                    }
+                }
+            }
+            findViewById<Button>(R.id.broadcastreciever_button) -> {
+                makeAToastMsg("b2")
+            }
+        }
+    }
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("CONTENT_PROVIDER_KEY", secretKey)
