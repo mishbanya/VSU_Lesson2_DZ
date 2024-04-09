@@ -11,6 +11,6 @@
 Для получения данных используется приложение [VSU_Lesson2](https://github.com/shalkov/VSU_Lesson2). 
 
 Mikhail Degtyarev  
-@mishbanya, 2024
+@mishbanya, 2024 
 
 
